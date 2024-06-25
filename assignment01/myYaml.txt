@@ -1,28 +1,3 @@
-# IoT Docker compose
-
-
-## How to start docker compose
-
-```command: bash -c "git clone git@github.com:user/project.git" (bash จาก project ใน github มาลงไว้ใน docker)
-    ใช้ docker-compose.yml เพื่อเข้าไป modify file ที่ clone มาลง และแก้ไขโค้ดที่ทำให้เกิด Error
-```
-
-## Error we found
-service บางตัวมีการจัดเรียงโค้ดผิดบรรทัด และบางตัวต้องปิดการใช้งานเพื่อไม่ให้เกิด Error
-
-## How to solve the problems.
-ปิดการใช้งานโค้ดในบาง service ในแต่ละบรรทัด และจัดเรียงโค้ด เพื่อให้โค้ดมีลำดับการทำงานที่ถูกต้อง
-
-## Output
-
-- [ ] IoT Sensor - Dashboards - Grafana
-- [ ] UI for Apache Ka
-- [ ] Mongo Expr
-- [ ] Node Expor
-- [ ] Prometheus Time Series Collection and Processing Ser
-- [ ] Prometheus Pushgateway
-- [ ] ZooNavigator
-
 version: '3.6'
 
 volumes:
