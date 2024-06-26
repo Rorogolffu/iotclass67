@@ -6,7 +6,13 @@
 ขั้นตอนการติดตั้ง servers ในอุปกรณ์ Dell Server
 1.ขั้นตอนแรกสิ่งที่ต้องเตรียมคือ Dell Server และ Monitor ที่ใช้สำหรับจัดการข้อมูลที่ใช้สำหรับติดตั้ง Mouse, Keyboard, สายLan, Flashdrive
 2.เมื่อต่ออุปกรณ์เสร็จแล้ว ต่อมาคือการติดตั้ง ระบบปฏิบัติการ Ubuntu Server ในเครื่อง Dell Server โดยเราจะต้องเข้าไปดาวน์โหลด File Driver สำหรับติดตั้งจาก Website ของ Ubuntu ในแต่ละ version ซึ่งเราจะเลือกใช้ ubuntu -v 22.04 (https://ubuntu.com/download/server) แล้วเก็บไว้ใน flashdrive
-3.เมื่อดาวน์โหลดเรียบร้อยแล้ว ให้เราเปิดเครื่อง Dell server และ Boot ระบบด้วย flashdrive (กด F2) หลังจากนั้น Monitor ก็จะแสดงผลเครื่องมือที่ให้เราใช้สำหรับติดตั้ง Ubuntu Server  โดยเป็นการ setting ค่าต่างๆของระบบก่อนจะทำการ setup เช่น พื้นที่เก็บไฟล์ ตั้งค่า user และ password ของ computer หรือลง driver อื่นๆ ที่จำเป็นใน ubuntu server (โดย project นี้เราไม่ได้ตั้งค่าพื้นที่เก็บไฟล์สำหรับระบบปฏิบัติการดังนั้น ระบบจะ boot แค่ single mode คือ ubuntu 22.04 เท่านั้น เสมือนเป็นการลงทับ window อันเดิม)
+3.เมื่อดาวน์โหลดเรียบร้อยแล้ว ให้เราเปิดเครื่อง Dell server และ Boot ระบบด้วย flashdrive (กด F2) เลือก boot flashdrive แล้ว exit หลังจากนั้น Monitor ก็จะแสดงผลเครื่องมือที่ให้เราใช้สำหรับติดตั้ง Ubuntu Server  โดยเป็นการ setting ค่าต่างๆของระบบก่อนจะทำการ setup ดังนี้
+
+    3.1 พื้นที่เก็บไฟล์: setting พื้นที่เก็บไฟล์ของ Dell server ให้เราเข้าไปที่ Storage configuration ผ่าน Custom storage ให้เรา delete partition ออกให้หมด หลังจากนั้นให้ทำการสร้างพื้นที่สำหรับการ swap เป็น 1G และสร้างพื้นที่  / ให้เป็น default หรือพื้นที่ว่างทั้งหมด
+    3.2 ลง driver อื่นๆ ที่จำเป็นใน ubuntu server ขั้นตอนนี้เราไม่ต้องลงอะไรเพิ่ม ให้กด done ข้ามไป
+    3.3 ตั้งค่า user และ password ของ computer
+
+
 4.หลังจากที่เรา setting เสร็จถึงขั้นตอนสุดท้ายแล้ว ระบบจะ setup ค่าต่างๆ ขั้นตอนนี้ให้เรารอจนกว่าระบบจะติดตั้งสำเร็จจากนั้น restart เครื่องแล้วเปิดใหม่ เพื่อ test ว่าเวลาเราเปิด Dell Server ขึ้นมา Ubuntu server สามารถใช้งานได้ตามปกติ (หรือจะเช็คผ่านหน้า bios ก็ได้)
 
 
