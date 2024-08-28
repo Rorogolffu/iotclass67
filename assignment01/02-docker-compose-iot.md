@@ -1,444 +1,97 @@
 # IoT Docker compose
 
-
 ## How to start docker compose
+1. ติดตั้ง rufas
+2. ติดตั้ง ubantu iso ของ version 22.04.xx
+3. ใช้ rufas burn flashrdrive ให้ กลายเป็น boot device
+4. เข้า bios ในเครื่อง dell 5000
+5. เปลี่ยน boot privority ให้ boot ผ่าน flashdrive sandisk ก่อนเสมอ
+6. กด save config ใน bios
+7. เครื่องจะ restart เอง
+8. Chose try or install buntu Server
+9. Chose longuage..
+10. Chose ubuntu server(minimize)
+11. Confie my ip address ต้องไม่ซ้ำกัน
+12. Chose custom storage layout
+13. Delete old doto (parsition)
+14. เอา free space ที่มีอยู่มาตั้งเป็น swap ขนาด 1GB ชนิดข้อมูลเเบบ ext4
+15. เอาที่ว่างที่เหลือทั้งหมดมาทำเป็น /
+16. กด continue
+17. ตั้ง username password ตั้งชื่อเครื่อง ตั้งชื่อเจ้าของเครื่อง
+18. หลัง download เสร็จ เลือก Reboot now
+19. login user-password ใน terminal
+20. ดูพื้นที่เก็บในไดร์ฟ ด้วยคำสั่ง df -h
+21. ติดตั้ง text editor ที่ชื่อว่า nano ด้วยคำสั่ง sudo apt-get install nano -y
+22. cd/etc/netplan
+25. sudo nano 00-network-config.yaml  # เพื่อเเก้ configuration ของ network ให้เป็นเเบบ static
+เเละเลือก domain name server เป็นของ รร เเล้วก็ตั้ง domain สำรองเป็นของ 8.8.8.8 (google DNS)
+24. ctrl + s เพื่อ save
+25. ctrl + x เพื่อ exit
+26. sudo netplan apply
+27. sudo reboot now
+28. ติดตั้ง github
+29. ติดตั้ง docker
+30. clone git hub ของอาจารย์มาลง
+31. docker compose up
 
-```command: bash -c "git clone git@github.com:user/project.git" (bash จาก project ใน github มาลงไว้ใน docker)
-    ใช้ docker-compose.yml เพื่อเข้าไป modify file ที่ clone มาลง และแก้ไขโค้ดที่ทำให้เกิด Error
-```
-
-## Error we found
-service บางตัวมีการจัดเรียงโค้ดผิดบรรทัด และบางตัวต้องปิดการใช้งานเพื่อไม่ให้เกิด Error
+## Error we founud
+1. kafka ไม่ start
+2. kafka error 404
 
 ## How to solve the problems.
-ปิดการใช้งานโค้ดในบาง service ในแต่ละบรรทัด และจัดเรียงโค้ด เพื่อให้โค้ดมีลำดับการทำงานที่ถูกต้อง
+- docker compose restart kafka
+- docker compose log -f |egrep 'WARN|ERR' (ใช้สำหรับดู logs จาก Docker Compose ที่มีข้อความที่มีคำว่า "WARN" หรือ "ERR" โดยใช้คำสั่ง egrep เพื่อกรองเฉพาะบรรทัดที่มีข้อความเหล่านี้อยู่เท่านั้น เช่น คำสั่งที่ให้มาจะทำการเรียกดู logs แบบ real-time (-f) และกรองเฉพาะข้อความที่มี "WARN" หรือ "ERR" ด้วย 'egrep'.)
+
+- วิธีดังกล่าวไม่ได้ผล จนครูตัดสินใจทำ IOT compose ขึ้นมาเองเลย
+[https://github.com/hanattaw/iot_event_streaming_architecture](https://github.com/hanattaw/iot_event_streaming_architecture)
+
+- clone github ครูไปลงใน server dell
+
+- ตอน ```docker compose up``` จะมี container หลายๆ ตัว เกิด dependency error ซึ่งก็คือ container นั้นๆ อาจจะต้องการให้ container run เสร็จก่อน เช่น A ต้องการให้ database เปิดก่อน ถึงจะไปเชื่อมได้ เเต่ในที่นี้ database ยัง start ไม่เสร็จ A ก็เชื่อมต่อ database ไม่สำเร็จ เเล้วก็ค้างไปเลย
+
+- วิธีเเก้ dependency error ทำได้ 2 วิธี คือ ใส่ dependency array ให้ dockercompose.yaml หรือ start ไปเลยไม่ต้องสนใจอะไรทั้งนั้น container ใหนมีปัญหา ค่อยมานั่งใส่คำสั่ง docker restart เอา ยกตัวอย่างตัวที่ error บ่อยจนผมฝังใจเช่น
+
+```bash
+docker compose restart grafana
+```
+
+grafana มีปัญหาเยอะสุดน่าจะเพราะว่ามันคือตัว dashboard มันจะต้องเชื่อมต่อกับทุกอย่าง เอาข้อมูลทุกอย่างมาเเสดงผลให้เราดู
 
 ## Output
 
-- [ ] IoT Sensor - Dashboards - Grafana
-- [ ] UI for Apache Ka
-- [ ] Mongo Expr
-- [ ] Node Expor
-- [ ] Prometheus Time Series Collection and Processing Ser
-- [ ] Prometheus Pushgateway
-- [ ] ZooNavigator
-
-version: '3.6'
-
-volumes:
-    prometheus_data: {}
-    grafana_data: {}
-    zookeeper-data:
-      driver: local
-    zookeeper-log:
-      driver: local
-    kafka-data:
-      driver: local
-
-services:
-
-  # ZooKeeper is a centralized service for maintaining configuration information,
-  # naming, providing distributed synchronization, and providing group services.
-  # It provides distributed coordination for our Kafka cluster.
-  # http://zookeeper.apache.org/
-  zookeeper:
-    image: confluentinc/cp-zookeeper
-    container_name: zookeeper
-    # ZooKeeper is designed to "fail-fast", so it is important to allow it to
-    # restart automatically.
-    restart: unless-stopped
-    volumes:
-      - zookeeper-data:/var/lib/zookeeper/data
-      - zookeeper-log:/var/lib/zookeeper/log
-    environment:
-      ZOOKEEPER_CLIENT_PORT: 2181
+- [ ✓ ] IoT Sensor - Dashboards - Grafana
+- [ ✓ ] UI for Apache Ka
+- [ ✓ ] Mongo Expr
+- [ ✓ ] Node Expor
+- [ ✓ ] Prometheus Time Series Collection and Processing Ser
+- [ ✓ ] Prometheus Pushgateway
+- [ ✓ ] ZooNavigator
 
 
-  # Kafka is a distributed streaming platform. It is used to build real-time streaming
-  # data pipelines that reliably move data between systems and platforms, and to build
-  # real-time streaming applications that transform or react to the streams of data.
-  # http://kafka.apache.org/
-  kafka:
-    image: confluentinc/cp-kafka
-    container_name: kafka
-    volumes:
-      - kafka-data:/var/lib/kafka
-    environment:
-      # Required. Instructs Kafka how to get in touch with ZooKeeper.
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_NUM_PARTITIONS: 1
-      KAFKA_COMPRESSION_TYPE: gzip
-      # Required when running in a single-node cluster, as we are. We would be able to take the default if we had
-      # three or more nodes in the cluster.
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-      # Required. Kafka will publish this address to ZooKeeper so clients know
-      # how to get in touch with Kafka. "PLAINTEXT" indicates that no authentication
-      # mechanism will be used.
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'true'
-    links:
-      - zookeeper
+# คำเตือน : url พวกนี้อย่ากดโดยไม่รู้เรื่อง เพราะใน project นี้ ทางเราได้ทำ private network มาเพื่อทำการทดลองนี้โดยเฉพาะ
+### IoT Sensor - Dashboards - Grafana URL
+
+http://172.16.46.71:8085/
+
+### UI for Apache Kafka
+ยังไม่เคยเข้า เเต่น่าจะเป็น
+http://172.16.46.71:8081/ หรือ http://172.16.46.71:8082/
+
+### Mongo Express
+ยังไม่เคยเข้า เเต่น่าจะเป็น
+http://172.16.46.71:8084/
+
+### Node Exporter
+ยังไม่เคยเข้า เเต่น่าจะเป็น
 
 
-  # The Kafka REST Proxy provides a RESTful interface to a Kafka cluster.
-  # It makes it easy to produce and consume messages, view the state
-  # of the cluster, and perform administrative actions without using
-  # the native Kafka protocol or clients.
-  # https://github.com/confluentinc/kafka-rest
-  kafka-rest-proxy:
-    image: confluentinc/cp-kafka-rest:latest
-    container_name: kafka-rest-proxy
-    environment:
-      # Specifies the ZooKeeper connection string. This service connects
-      # to ZooKeeper so that it can broadcast its endpoints as well as
-      # react to the dynamic topology of the Kafka cluster.
-      KAFKA_REST_ZOOKEEPER_CONNECT: zookeeper:2181
-      # The address on which Kafka REST will listen for API requests.
-      KAFKA_REST_LISTENERS: http://0.0.0.0:8082/
-      # Required. This is the hostname used to generate absolute URLs in responses.
-      # It defaults to the Java canonical hostname for the container, which might
-      # not be resolvable in a Docker environment.
-      KAFKA_REST_HOST_NAME: kafka-rest-proxy
-      # The list of Kafka brokers to connect to. This is only used for bootstrapping,
-      # the addresses provided here are used to initially connect to the cluster,
-      # after which the cluster will dynamically change. Thanks, ZooKeeper!
-      KAFKA_REST_BOOTSTRAP_SERVERS: kafka:9092
-    # Kafka REST relies upon Kafka, ZooKeeper
-    # This will instruct docker to wait until those services are up
-    # before attempting to start Kafka REST.
-    ports:
-      - "9999:8082"
-    depends_on:
-      - zookeeper
-      - kafka
-
-  # Browse Kafka topics and understand what's happening on your cluster.
-  # Find topics / view topic metadata / browse topic data
-  # (kafka messages) / view topic configuration / download data.
-  # https://github.com/Landoop/kafka-topics-ui
-  kafka-topics-ui:
-    image: landoop/kafka-topics-ui:latest
-    container_name: kafka-topics-ui
-    ports:
-      - "8081:8000"
-    environment:
-      # Required. Instructs the UI where it can find the Kafka REST Proxy.
-      KAFKA_REST_PROXY_URL: "http://kafka-rest-proxy:8082/"
-      # This instructs the docker image to use Caddy to proxy traffic to kafka-topics-ui.
-      PROXY: "true"
-    # kafka-topics-ui relies upon Kafka REST.
-    # This will instruct docker to wait until those services are up
-    # before attempting to start kafka-topics-ui.
-    depends_on:
-      - kafka-rest-proxy
-
-  # Kafka Connect, an open source component of Apache Kafka,
-  # is a framework for connecting Kafka with external systems
-  # such as databases, key-value stores, search indexes, and file systems.
-  # https://docs.confluent.io/current/connect/index.html
-  kafka-connect:
-    image: confluentinc/cp-kafka-connect:latest
-    hostname: kafka-connect
-    container_name: kafka-connect
-    environment:
-      # Required.
-      # The list of Kafka brokers to connect to. This is only used for bootstrapping,
-      # the addresses provided here are used to initially connect to the cluster,
-      # after which the cluster can dynamically change. Thanks, ZooKeeper!
-      CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
-      # Required. A unique string that identifies the Connect cluster group this worker belongs to.
-      CONNECT_GROUP_ID: kafka-connect-group
-      # Connect will actually use Kafka topics as a datastore for configuration and other data. #meta
-      # Required. The name of the topic where connector and task configuration data are stored.
-      CONNECT_CONFIG_STORAGE_TOPIC: kafka-connect-meta-configs
-      # Required. The name of the topic where connector and task configuration offsets are stored.
-      CONNECT_OFFSET_STORAGE_TOPIC: kafka-connect-meta-offsets
-      # Required. The name of the topic where connector and task configuration status updates are stored.
-      CONNECT_STATUS_STORAGE_TOPIC: kafka-connect-meta-status
-      # Required. Converter class for key Connect data. This controls the format of the
-      # data that will be written to Kafka for source connectors or read from Kafka for sink connectors.
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      # Required. Converter class for value Connect data. This controls the format of the
-      # data that will be written to Kafka for source connectors or read from Kafka for sink connectors.
-      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      # Required. The hostname that will be given out to other workers to connect to.
-      CONNECT_REST_ADVERTISED_HOST_NAME: "kafka-connect"
-      CONNECT_REST_PORT: 8083
-      # The next three are required when running in a single-node cluster, as we are.
-      # We would be able to take the default (of 3) if we had three or more nodes in the cluster.
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: "1"
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: "1"
-      #Connectos path
-      CONNECT_PLUGIN_PATH: "/usr/share/java,/data/connectors/"
-      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
-    volumes:
-      - ./kafka_connect/data:/data
-    command:
-      - bash
-      - -c
-      - |
-        echo "Launching Kafka Connect worker"
-        /etc/confluent/docker/run &
-        #
-        echo "Waiting for Kafka Connect to start listening on http://$$CONNECT_REST_ADVERTISED_HOST_NAME:$$CONNECT_REST_PORT/connectors ⏳"
-        while [ $$(curl -s -o /dev/null -w %{http_code} http://$$CONNECT_REST_ADVERTISED_HOST_NAME:$$CONNECT_REST_PORT/connectors) -ne 200 ] ; do
-          echo -e $$(date) " Kafka Connect listener HTTP state: " $$(curl -s -o /dev/null -w %{http_code} http://$$CONNECT_REST_ADVERTISED_HOST_NAME:$$CONNECT_REST_PORT/connectors) " (waiting for 200)"
-          sleep 5
-        done
-        nc -vz $$CONNECT_REST_ADVERTISED_HOST_NAME $$CONNECT_REST_PORT
-        echo -e "\n--\n+> Creating Kafka Connect MongoDB sink Current PATH ($$PWD)"
-        /data/scripts/create_mongo_sink.sh
-        echo -e "\n--\n+> Creating MQTT Source Connect Current PATH ($$PWD)"
-        /data/scripts/create_mqtt_source.sh
-        echo -e "\n--\n+> Creating Kafka Connect Prometheus sink Current PATH ($$PWD)"
-        /data/scripts/create_prometheus_sink.sh
-        sleep infinity
-    # kafka-connect relies upon Kafka and ZooKeeper.
-    # This will instruct docker to wait until those services are up
-    # before attempting to start kafka-connect.
-    depends_on:
-      - zookeeper
-      - kafka
-
-  # This is a web tool for Kafka Connect for setting up and managing connectors for multiple connect clusters.
-  # https://github.com/Landoop/kafka-connect-ui
-  kafka-connect-ui:
-    image: landoop/kafka-connect-ui:latest
-    container_name: kafka-connect-ui
-    # kafka-connect-ui binds to port 8000, but we are going to expose it on our local
-    # machine on port 8002.
-    ports:
-      - "8082:8000"
-    environment:
-      # Required. Instructs the UI where it can find Kafka Connect.
-      CONNECT_URL: "http://kafka-connect:8083/"
-      # This instructs the docker image to use Caddy to proxy traffic to kafka-connect-ui.
-      PROXY: "true"
-    # kafka-connect-ui relies upon Kafka Connect.
-    # This will instruct docker to wait until those services are up
-    # before attempting to start kafka-connect-ui.
-    depends_on:
-      - kafka-connect
-
-  # API for ZooNavigator, web-based browser & editor for ZooKeeper.
-  # https://github.com/elkozmon/zoonavigator-api
-  #  zoonavigator-api:
-  # image: elkozmon/zoonavigator-api:latest
-  # container_name: zoonavigator-api
-  # environment:
-      # The port on which the api service will listen for incoming connections.
-      #   SERVER_HTTP_PORT: 9000
-      # restart: unless-stopped
-    # zoonavigator-api relies upon ZooKeeper.
-    # This will instruct docker to wait until those services are up
-    # before attempting to start zoonavigator-api.
-    # depends_on:
-    # - zookeeper
-
-  # Web client for ZooNavigator, web-based browser & editor for ZooKeeper.
-  # https://github.com/elkozmon/zoonavigator-web
-  # zoonavigator-web:
-  # image: elkozmon/zoonavigator-web:latest
-  # container_name: zoonavigator-web
-    # zoonavigator-web binds to port 8000, but we are going to expose it on our local
-    # machine on port 8002.
-    # ports:
-    # - "8083:8000"
-    # environment:
-      # The following two keys instruct the web component how to connect to
-      # the backing api component.
-      # API_HOST: "zoonavigator-api"
-      # API_PORT: 9000
-    # zoonavigator-web relies upon zoonavigator-api.
-    # This will instruct docker to wait until those services are up
-    # before attempting to start zoonavigator-web.
-    # depends_on:
-    # - zoonavigator-api
-    # restart: unless-stopped
-
-  # Eclipse Mosquitto is an open source (EPL/EDL licensed) message broker that implements the MQTT protocol versions 5.0, 3.1.1 and 3.1. Mosquitto is lightweight and is suitable for use on all devices from low power single board computers to full servers.
-  # The MQTT protocol provides a lightweight method of carrying out messaging using a publish/subscribe model. This makes it suitable for Internet of Things messaging such as with low power sensors or mobile devices such as phones, embedded computers or microcontrollers.
-  # The Mosquitto project also provides a C library for implementing MQTT clients, and the very popular mosquitto_pub and mosquitto_sub command line MQTT clients.
-  mosquitto:
-    image: eclipse-mosquitto:latest
-    hostname: mosquitto
-    container_name: mosquitto
-    expose:
-      - "1883"
-    ports:
-      - "1883:1883"
-
-  mongo:
-    image: mongo:4.2
-    container_name: mongo
-    env_file:
-      - .env
-    restart: always
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=${MONGO_ROOT_USER}
-      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD}
-      - MONGO_INITDB_DATABASE=${MONGO_DB}
-
-  # Web-based MongoDB admin interface, written with Node.js and express
-  mongo-express:
-    image: mongo-express
-    container_name: mongo-express
-    env_file:
-      - .env
-    restart: always
-    environment:
-      - ME_CONFIG_MONGODB_SERVER=mongo
-      - ME_CONFIG_MONGODB_PORT=27017
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
-      - ME_CONFIG_MONGODB_AUTH_DATABASE=admin
-      - ME_CONFIG_MONGODB_ADMINUSERNAME=${MONGO_ROOT_USER}
-      - ME_CONFIG_MONGODB_ADMINPASSWORD=${MONGO_ROOT_PASSWORD}
-      - ME_CONFIG_BASICAUTH_USERNAME=${MONGOEXPRESS_LOGIN}
-      - ME_CONFIG_BASICAUTH_PASSWORD=${MONGOEXPRESS_PASSWORD}
-    depends_on:
-      - mongo
-    ports:
-      - "8084:8081"
+### Prometheus Time Series Collection and Processing Server
+ยังไม่เคยเข้า เเต่น่าจะเป็น
 
 
-  # Grafana is a multi-platform open source analytics and interactive visualization web application.
-  # It provides charts, graphs, and alerts for the web when connected to supported data sources.
-  # It is expandable through a plug-in system. End users can create complex monitoring dashboards using interactive query builders.
-  grafana:
-    image: grafana/grafana:latest-ubuntu
-    container_name: grafana
-    volumes:
-      - grafana_data:/var/lib/grafana
-      - ./grafana/datasources:/etc/grafana/datasources
-      - ./grafana/dashboards:/etc/grafana/dashboards
-      - ./grafana/setup.sh:/setup.sh
-    entrypoint: /setup.sh
-    environment:
-      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
-      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-worldmap-panel,grafana-piechart-panel
-      - GF_USERS_ALLOW_SIGN_UP=false
-    restart: unless-stopped
-    links:
-       - prometheus
-    ports:
-      - '8085:3000'
-
-  # Prometheus is a free software application used for event monitoring and alerting.
-  # It records real-time metrics in a time series database built using a HTTP pull model, with flexible queries and real-time alerting.
-  # The project is written in Go and licensed under the Apache 2 License, with source code available on GitHub,
-  # and is a graduated project of the Cloud Native Computing Foundation, along with Kubernetes and Envoy.
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./prometheus/:/etc/prometheus/
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=200h'
-      - '--web.enable-lifecycle'
-    restart: unless-stopped
-    ports:
-      - '8086:9090'
-    depends_on:
-      #- cadvisor
-      - nodeexporter
-
-  # Exporter for machine metrics
-  nodeexporter:
-    image: prom/node-exporter:v0.18.1
-    container_name: nodeexporter
-    hostname: nodeexporter
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /home/arapan/iot_event_streaming_architecture
-    command:
-      - '--path.procfs=/host/proc'
-      - '--path.rootfs=/rootfs'
-      - '--path.sysfs=/host/sys'
-      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
-    restart: unless-stopped
-    ports:
-      - '9100:9100'
-
-  # Analyzes resource usage and performance characteristics of running containers.
-  #cadvisor:
-  #  image: google/cadvisor:latest
-  #  container_name: cadvisor
-  #  hostname: cadvisor
-  #  volumes:
-  #    - /home/arapan/iot_event_streaming_architecture
-  #    - /var/run:/var/run:ro
-  #    - /sys:/sys:ro
-  #    - /var/lib/docker/:/var/lib/docker:ro
-  #    - /dev/disk/:/dev/disk:ro
-  #  restart: unless-stopped
-  #  ports:
-  #    - '8087:8080'
-
-  # Kafka exporter for Prometheus
-  kafka-exporter:
-    image: bitnami/kafka-exporter:latest
-    container_name: kafka-exporter
-    hostname: kafka-exporter
-    command:
-      - '--kafka.server=kafka:9092'
-      - '--web.listen-address=kafka-exporter:9308'
-      - '--web.telemetry-path=/metrics'
-      - '--log.level=debug'
-    restart: unless-stopped
+### Prometheus Pushgateway
+ยังไม่เคยเข้า เเต่น่าจะเป็น
 
 
-  # IoT Sensor 1
-  iot_sensor_1:
-    image: ssanchez11/iot_sensor:0.0.1-SNAPSHOT
-    container_name: iot_sensor_1
-    restart: unless-stopped
-    environment:
-      - sensor.id=${IOT_SENSOR_1_ID}
-      - sensor.name=${IOT_SENSOR_1_NAME}
-      - sensor.place.id=${IOT_SENSOR_1_PLACE_ID}
-
-  # IoT Sensor 2
-  iot_sensor_2:
-    image: ssanchez11/iot_sensor:0.0.1-SNAPSHOT
-    container_name: iot_sensor_2
-    restart: unless-stopped
-    environment:
-      - sensor.id=${IOT_SENSOR_2_ID}
-      - sensor.name=${IOT_SENSOR_2_NAME}
-      - sensor.place.id=${IOT_SENSOR_2_PLACE_ID}
-
-  # IoT Sensor 3
-  iot_sensor_3:
-    image: ssanchez11/iot_sensor:0.0.1-SNAPSHOT
-    container_name: iot_sensor_3
-    restart: unless-stopped
-    environment:
-      - sensor.id=${IOT_SENSOR_3_ID}
-      - sensor.name=${IOT_SENSOR_3_NAME}
-      - sensor.place.id=${IOT_SENSOR_3_PLACE_ID}
-
-  # IoT Processor
-  iot-processor:
-    image: ssanchez11/iot_processor:0.0.1-SNAPSHOT
-    container_name: iot-processor
-    restart: unless-stopped
-    ports:
-      - '8080:8080'
-
-  pushgateway:
-    image: prom/pushgateway:v0.8.0
-    container_name: pushgateway
-    restart: unless-stopped
-    ports:
-      - '9091:9091'
-
+### ZooNavigator
+ยังไม่เคยเข้า เเต่น่าจะเป็น
